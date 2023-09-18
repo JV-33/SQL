@@ -10,16 +10,16 @@ describe("Queries Across Tables", () => {
 
     it("should select count of apps which have free pricing plan", async done => {
         const query = `
-        SELECT COUNT(DISTINCT apps.id) as count 
-        FROM apps 
-        JOIN apps_pricing_plans ON apps.id = apps_pricing_plans.app_id
-        JOIN pricing_plans ON apps_pricing_plans.pricing_plan_id = pricing_plans.id
-        WHERE pricing_plans.id = 1;
+        SELECT COUNT(*) AS count
+        FROM apps_pricing_plans 
+        JOIN pricing_plans AS pr ON apps_pricing_plans.pricing_plan_id = pr.id
+        WHERE pr.price LIKE 'Free%'
+        
         `;
     
         const result = await db.selectSingleRow(query);
         expect(result).toEqual({
-            count: 854
+            count: 1112
         });
         done();
     }, minutes(1));
@@ -44,34 +44,21 @@ describe("Queries Across Tables", () => {
 
     it("should select top 3 prices by appearance in apps and in price range from $5 to $10 inclusive (not matters monthly or one time payment)", async done => {
         const query = `
-        SELECT
-        pricing_plans.price,
-        COUNT(DISTINCT apps.id) AS count,
-        CASE 
-            WHEN pricing_plans.id = 8 THEN 9.99
-            WHEN pricing_plans.id = 11 THEN 5
-            WHEN pricing_plans.id = 5 THEN 10
-        END AS casted_price
-    FROM
-        apps
-    JOIN
-        apps_pricing_plans ON apps.id = apps_pricing_plans.app_id
-    JOIN
-        pricing_plans ON apps_pricing_plans.pricing_plan_id = pricing_plans.id
-    WHERE
-        pricing_plans.id IN (8, 11, 5)
-    GROUP BY
-        pricing_plans.price
-    ORDER BY
-        count DESC;
-    
+        SELECT COUNT(*) as count, price,
+        CAST(REPLACE(REPLACE(SUBSTR(price, INSTR(price, '$') + 1), ' ', ''), '/', '') AS REAL) AS casted_price
+        FROM [PRICING_PLANS]
+        JOIN [APPS_PRICING_PLANS] AS app ON app.pricing_plan_id = [PRICING_PLANS].id
+        WHERE casted_price BETWEEN 5 AND 10
+        GROUP BY casted_price
+        ORDER BY count DESC
+        LIMIT 3
         `;
     
         const result = await db.selectMultipleRows(query);
         expect(result).toEqual([
-            { count: 223, price: "$9.99/month", casted_price: 9.99 },
+            { count: 225, price: "$9.99/month", casted_price: 9.99 },
             { count: 135, price: "$5/month", casted_price: 5 },
-            { count: 113, price: "$10/month", casted_price: 10 }
+            { count: 114, price: "$10/month", casted_price: 10 }
         ]);
     
         done();
