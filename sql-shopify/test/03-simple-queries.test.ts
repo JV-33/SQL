@@ -9,17 +9,24 @@ describe("Simple Queries", () => {
     }, minutes(1));
 
     it("should select app count with rating of 5 stars", async done => {
-        const query = `todo`;
+        const query = `SELECT COUNT(*) as count FROM APPS WHERE rating = 5`;
         const result = await db.selectSingleRow(query);
         expect(result).toEqual({
             count: 731
         });
         done();
     }, minutes(1));
+    
 
-    it("should select top 3 develepors with most apps published", async done => {
-        const query = `todo`;
-
+    it("should select top 3 developers with most apps published", async done => {
+        const query = `
+            SELECT developer, COUNT(*) as count 
+            FROM APPS 
+            GROUP BY developer 
+            ORDER BY count DESC, developer ASC
+            LIMIT 3;
+        `;
+        
         const result = await db.selectMultipleRows(query);
         expect(result).toEqual([
             { count: 30, developer: "Webkul Software Pvt Ltd" },
@@ -28,9 +35,21 @@ describe("Simple Queries", () => {
         ]);
         done();
     }, minutes(1));
+    
+    
 
     it("should select count of reviews created in year 2014, 2015 and 2016", async done => {
-        const query = `todo`;
+        const query = `
+            SELECT 
+                SUBSTR(date_created, 7, 4) as year,
+                COUNT(*) as review_count
+            FROM
+                reviews
+            WHERE
+                SUBSTR(date_created, 7, 4) IN ('2014', '2015', '2016')
+            GROUP BY
+                SUBSTR(date_created, 7, 4)
+        `;
         const result = await db.selectMultipleRows(query);
         expect(result).toEqual([
             { year: "2014", review_count: 6157 },
@@ -39,4 +58,6 @@ describe("Simple Queries", () => {
         ]);
         done();
     }, minutes(1));
+    
+    
 });
