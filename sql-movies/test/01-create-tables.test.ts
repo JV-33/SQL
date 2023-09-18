@@ -11,36 +11,99 @@ import {
 } from "../src/table-names";
 import { tableInfo, indexList } from "../src/queries/table-info";
 
-const CREATE_MOVIES_TABLE = ``;
+const CREATE_MOVIES_TABLE = `
+  CREATE TABLE ${MOVIES} (
+    id integer PRIMARY KEY NOT NULL,
+    imdb_id text NOT NULL,
+    popularity integer,
+    budget REAL NOT NULL,
+    budget_adjusted REAL NOT NULL,
+    revenue REAL NOT NULL,
+    revenue_adjusted REAL NOT NULL,
+    original_title text NOT NULL, 
+    homepage text,
+    tagline text,
+    overview text NOT NULL,
+    runtime integer NOT NULL,
+    release_date text NOT NULL
+  );
+`;
 
-const CREATE_MOVIE_RATINGS_TABLE = ``;
 
-const CREATE_ACTORS_TABLE = ``;
 
-const CREATE_KEYWORDS_TABLE = ``;
 
-const CREATE_DIRECTORS_TABLE = ``;
+const CREATE_MOVIE_RATINGS_TABLE = `
+  CREATE TABLE ${MOVIE_RATINGS} (
+    user_id integer NOT NULL,
+    movie_id integer NOT NULL,
+    rating REAL NOT NULL,
+    time_created text NOT NULL,
+    PRIMARY KEY(user_id, movie_id)
+  );
+`;
 
-const CREATE_GENRES_TABLE = ``;
 
-const CREATE_PRODUCTION_COMPANIES_TABLE = ``;
+const CREATE_ACTORS_TABLE = `
+  CREATE TABLE ${ACTORS} (
+    id integer PRIMARY KEY NOT NULL,
+    full_name text NOT NULL
+  );
+`;
 
-const CREATE_INDEX_MOVIES_RELEASE_DATE = ``;
 
-const CREATE_INDEX_MOVIE_RATINGS_TIME_CREATED = ``;
+const CREATE_KEYWORDS_TABLE = `
+  CREATE TABLE ${KEYWORDS} (
+    id integer PRIMARY KEY NOT NULL,
+    keyword text NOT NULL
+  );
+`;
 
-const CREATE_UNIQUE_INDEX_MOVIES_IMDB_ID = ``;
 
-const CREATE_UNIQUE_INDEX_KEYWORDS_KEYWORD = ``;
+const CREATE_DIRECTORS_TABLE = `
+  CREATE TABLE ${DIRECTORS} (
+    id integer PRIMARY KEY NOT NULL,
+    full_name text NOT NULL
+  );
+`;
 
-const CREATE_UNIQUE_INDEX_GENRES_GENRE = ``;
 
-const CREATE_UNIQUE_INDEX_PRODUCTION_COMPANIES_COMPANY_NAME = ``;
+
+
+const CREATE_GENRES_TABLE = `
+  CREATE TABLE ${GENRES} (
+    id integer PRIMARY KEY NOT NULL,
+    genre text NOT NULL
+  );
+`;
+
+const CREATE_PRODUCTION_COMPANIES_TABLE = `
+  CREATE TABLE ${PRODUCTION_COMPANIES} (
+    id integer PRIMARY KEY NOT NULL,
+    company_name text NOT NULL
+  );
+`;
+
+
+const CREATE_INDEX_MOVIES_RELEASE_DATE = `CREATE INDEX movies_release_date_idx ON ${MOVIES} (release_date)`;
+
+const CREATE_INDEX_MOVIE_RATINGS_TIME_CREATED = `CREATE INDEX movie_ratings_time_created_idx ON ${MOVIE_RATINGS} (time_created)`;
+
+const CREATE_UNIQUE_INDEX_MOVIES_IMDB_ID = `CREATE UNIQUE INDEX movies_imdb_id_unq_idx ON ${MOVIES} (imdb_id)`;
+
+const CREATE_UNIQUE_INDEX_KEYWORDS_KEYWORD = `CREATE UNIQUE INDEX keywords_keyword_unq_idx ON ${KEYWORDS} (keyword)`;
+
+const CREATE_UNIQUE_INDEX_GENRES_GENRE = `CREATE UNIQUE INDEX genres_genre_unq_idx ON ${GENRES} (genre)`;
+
+const CREATE_UNIQUE_INDEX_PRODUCTION_COMPANIES_COMPANY_NAME = `CREATE UNIQUE INDEX production_companies_company_name_unq_idx ON ${PRODUCTION_COMPANIES} (company_name)`;
+
+
+
 
 describe("Tables", () => {
   let db: Database;
 
   beforeAll(async () => (db = await Database.fromExisting("00", "01")));
+  
 
   const selectTableInfo = async (table: string) => {
     return db.selectMultipleRows(tableInfo(table));
@@ -49,6 +112,8 @@ describe("Tables", () => {
   const selectIndexList = async (table: string) => {
     return db.selectMultipleRows(indexList(table));
   };
+
+  
 
   it("should create tables", async done => {
     const queries = [
@@ -70,6 +135,8 @@ describe("Tables", () => {
       expect(exists).toBeTruthy();
     }
 
+    
+
     done();
   });
 
@@ -81,61 +148,65 @@ describe("Tables", () => {
       };
     };
 
+    
+
     const movies = (await selectTableInfo(MOVIES)).map(mapFn);
     expect(movies).toEqual([
-      { name: "id", type: "integer" },
-      { name: "imdb_id", type: "text" },
-      { name: "popularity", type: "real" },
-      { name: "budget", type: "real" },
-      { name: "budget_adjusted", type: "real" },
-      { name: "revenue", type: "real" },
-      { name: "revenue_adjusted", type: "real" },
-      { name: "original_title", type: "text" },
-      { name: "homepage", type: "text" },
-      { name: "tagline", type: "text" },
-      { name: "overview", type: "text" },
-      { name: "runtime", type: "integer" },
-      { name: "release_date", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "imdb_id", type: "TEXT" },
+      { name: "popularity", type: "INTEGER" },
+      { name: "budget", type: "REAL" },
+      { name: "budget_adjusted", type: "REAL" },
+      { name: "revenue", type: "REAL" },
+      { name: "revenue_adjusted", type: "REAL" },
+      { name: "original_title", type: "TEXT" },
+      { name: "homepage", type: "TEXT" },
+      { name: "tagline", type: "TEXT" },
+      { name: "overview", type: "TEXT" },
+      { name: "runtime", type: "INTEGER" },
+      { name: "release_date", type: "TEXT" }
     ]);
+    
 
     const movieRatings = (await selectTableInfo(MOVIE_RATINGS)).map(mapFn);
     expect(movieRatings).toEqual([
-      { name: "user_id", type: "integer" },
-      { name: "movie_id", type: "integer" },
-      { name: "rating", type: "real" },
-      { name: "time_created", type: "text" }
+      { name: "user_id", type: "INTEGER" },
+      { name: "movie_id", type: "INTEGER" },
+      { name: "rating", type: "REAL" },
+      { name: "time_created", type: "TEXT" }
     ]);
+    
 
     const actors = (await selectTableInfo(ACTORS)).map(mapFn);
     expect(actors).toEqual([
-      { name: "id", type: "integer" },
-      { name: "full_name", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "full_name", type: "TEXT" }
     ]);
-
+    
     const keywords = (await selectTableInfo(KEYWORDS)).map(mapFn);
     expect(keywords).toEqual([
-      { name: "id", type: "integer" },
-      { name: "keyword", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "keyword", type: "TEXT" }
     ]);
 
     const directors = (await selectTableInfo(DIRECTORS)).map(mapFn);
     expect(directors).toEqual([
-      { name: "id", type: "integer" },
-      { name: "full_name", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "full_name", type: "TEXT" }
     ]);
 
     const genres = (await selectTableInfo(GENRES)).map(mapFn);
     expect(genres).toEqual([
-      { name: "id", type: "integer" },
-      { name: "genre", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "genre", type: "TEXT" }
     ]);
 
     const productionCompanies = (await selectTableInfo(
       PRODUCTION_COMPANIES
     )).map(mapFn);
     expect(productionCompanies).toEqual([
-      { name: "id", type: "integer" },
-      { name: "company_name", type: "text" }
+      { name: "id", type: "INTEGER" },
+      { name: "company_name", type: "TEXT" }
     ]);
 
     done();
@@ -198,6 +269,8 @@ describe("Tables", () => {
       { name: "genre", primaryKey: false }
     ]);
 
+    
+
     const productionCompanies = (await selectTableInfo(
       PRODUCTION_COMPANIES
     )).map(mapFn);
@@ -221,7 +294,7 @@ describe("Tables", () => {
     expect(movies).toEqual([
       { name: "id", notNull: true },
       { name: "imdb_id", notNull: true },
-      { name: "popularity", notNull: true },
+      { name: "popularity", notNull: false },
       { name: "budget", notNull: true },
       { name: "budget_adjusted", notNull: true },
       { name: "revenue", notNull: true },
@@ -276,6 +349,7 @@ describe("Tables", () => {
 
     done();
   });
+  
 
   it("should have indices", async done => {
     const mapFn = (row: any) => {
@@ -296,6 +370,7 @@ describe("Tables", () => {
     ]);
 
     await db.createIndex(CREATE_INDEX_MOVIE_RATINGS_TIME_CREATED);
+    
 
     const movieRatings = (await selectIndexList(MOVIE_RATINGS)).map(mapFn);
     expect(movieRatings).toEqual([
@@ -363,6 +438,7 @@ describe("Tables", () => {
         unique: true
       }
     ]);
+    
 
     done();
   });

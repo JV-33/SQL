@@ -46,7 +46,7 @@ export class SQLiteWrapper {
     });
   }
 
-  async reset(): Promise<boolean> {
+  async reset(): Promise<boolean> { 
     return new Promise((resolve, reject) => {
       fs.unlink(this.pathToFile, err => {
         if (err) return reject(err);
